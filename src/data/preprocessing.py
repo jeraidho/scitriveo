@@ -4,20 +4,18 @@ import spacy
 from langdetect import detect
 import nltk
 from nltk.corpus import stopwords
-nltk.download('stopwords')
 from pandarallel import pandarallel
 
+nltk.download('stopwords')
 
-# init parallel processing
-pandarallel.initialize(progress_bar=False)
-
-additional_stop_words = [
-    'study', 'research', 'method', 'result', 'findings', 'paper', 'theory', 'data',
-    'approach', 'analysis', 'review', 'article'
-]
 
 # main class for text preprocessing
 class TextPreprocessor:
+    additional_stop_words = [
+        'study', 'research', 'method', 'result', 'findings', 'paper', 'theory', 'data',
+        'approach', 'analysis', 'review', 'article'
+    ]
+
     def __init__(self):
         # get regex filters
         self.html_regex = re.compile(r'<[^>]*>')
@@ -29,7 +27,7 @@ class TextPreprocessor:
 
         # stopwords
         self.stop_words = set(stopwords.words('english'))
-        self.stop_words.update(additional_stop_words)
+        self.stop_words.update(self.additional_stop_words)
 
     def _clean_noise(self, text: str) -> str:
         """
@@ -75,7 +73,8 @@ class TextPreprocessor:
 
         return " ".join(lemmatised_text)
 
-    def detect_language(self, text: str) -> str:
+    @staticmethod
+    def detect_language(text: str) -> str:
         """ Detect language of the input text """
         try:
             return detect(text)
@@ -83,6 +82,9 @@ class TextPreprocessor:
             return 'unknown'
 
     def preprocessing_pipeline(self, input_df: pd.DataFrame) -> pd.DataFrame:
+        # init parallel processing
+        pandarallel.initialize(progress_bar=False)
+
         input_df = input_df.copy()
 
         # Detect language of title and abstract
@@ -105,8 +107,8 @@ class TextPreprocessor:
         # clean empty title and abstract
         input_df = input_df[
             ~(
-                (input_df['title_lemmatised'] == '') &
-                (input_df['abstract_lemmatised'] == '')
+                    (input_df['title_lemmatised'] == '') &
+                    (input_df['abstract_lemmatised'] == '')
             )
         ]
 
@@ -116,7 +118,7 @@ class TextPreprocessor:
 
 
 if __name__ == '__main__':
-    file_path = 'abstracts.csv'  
+    file_path = 'abstracts.csv'
     data = pd.read_csv(file_path)
 
     text_preprocessor = TextPreprocessor()
