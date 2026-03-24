@@ -16,10 +16,10 @@ class Word2VecIndexer(BaseIndexer):
     """
 
     def __init__(
-        self,
-        model: Any,
-        tfidf_max_features: Optional[int] = 50_000,
-        min_score: float = 0.0,
+            self,
+            model: Any,
+            tfidf_max_features: Optional[int] = 50_000,
+            min_score: float = 0.0,
     ) -> None:
         """
         :param model: a word2vec-like model
@@ -261,3 +261,9 @@ class Word2VecIndexer(BaseIndexer):
 
         instance.feature_names = np.asarray(instance.tfidf_vectorizer.get_feature_names_out())
         return instance
+
+
+class W2VWrapper:
+    def __init__(self, kv):
+        self.wv = kv
+        self.vector_size = kv.vector_size
