@@ -12,6 +12,7 @@ from .search.factory import SearchEngineFactory
 from .services.index_build_service import IndexBuildService, IndexBuildReport
 from .services.recommendation_service import RecommendationService
 from .services.search_service import SearchService
+from cli.cli_app import CLIApplication
 
 
 __all__ = [
@@ -20,6 +21,7 @@ __all__ = [
     "AppContainer",
     "Collection",
     "CollectionManager",
+    "CLIApplication",
     "TextPreprocessor",
     "BaseIndexer",
     "BM25Indexer",

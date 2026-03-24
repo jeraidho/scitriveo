@@ -6,7 +6,7 @@ import nltk
 from nltk.corpus import stopwords
 from pandarallel import pandarallel
 
-nltk.download('stopwords')
+nltk.download('stopwords', quiet=True)
 
 
 # main class for text preprocessing
