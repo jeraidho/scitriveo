@@ -1,0 +1,20 @@
+<form action="{{ url_for('results') }}" method="get">
+    <input type="text" name="query" placeholder="Введите запрос" required>
+
+    <select name="index_name">
+        {% for index_name in available_indexes %}
+            <option value="{{ index_name }}">{{ index_name }}</option>
+        {% endfor %}
+    </select>
+
+    <input type="number" name="top_k" value="10" min="1" max="100">
+
+    <input type="number" name="publication_year_from" placeholder="Год от">
+    <input type="number" name="publication_year_to" placeholder="Год до">
+    <input type="text" name="journal_contains" placeholder="Journal contains">
+    <input type="text" name="field_in" placeholder="Fields через запятую">
+    <input type="number" name="cited_by_count_min" placeholder="Citations min">
+    <input type="number" name="cited_by_count_max" placeholder="Citations max">
+
+    <button type="submit">Искать</button>
+</form>

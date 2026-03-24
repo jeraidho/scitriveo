@@ -1,0 +1,72 @@
+<h1>Результаты поиска</h1>
+
+{% if add_status == "added" %}
+    <p style="color: green;">Статья добавлена в коллекцию.</p>
+{% elif add_status == "already_exists" %}
+    <p style="color: #996600;">Эта статья уже есть в коллекции.</p>
+{% endif %}
+
+{% if add_error %}
+    <p style="color: red;">Ошибка добавления в коллекцию: {{ add_error }}</p>
+{% endif %}
+
+{% if error %}
+    <p style="color: red;">Ошибка: {{ error }}</p>
+{% endif %}
+
+{% if results_data %}
+    <p>
+        Найдено: {{ results_data.results_count }} |
+        Время: {{ results_data.elapsed_ms }} ms |
+        Индекс: {{ results_data.index_name }}
+    </p>
+
+    {% for hit in results_data.results %}
+        <div style="border: 1px solid #ccc; padding: 12px; margin-bottom: 12px;">
+            <h3>{{ hit.title or "Без названия" }}</h3>
+
+            <p>
+                {{ hit.author or "Unknown author" }}
+                {% if hit.publication_year %} | {{ hit.publication_year }}{% endif %}
+                {% if hit.journal %} | {{ hit.journal }}{% endif %}
+            </p>
+
+            {% if hit.field %}
+                <p>Field: {{ hit.field }}</p>
+            {% endif %}
+
+            {% if hit.cited_by_count is not none %}
+                <p>Citations: {{ hit.cited_by_count }}</p>
+            {% endif %}
+
+            <p>{{ hit.text }}</p>
+
+            <p><strong>Score:</strong> {{ hit.score }}</p>
+
+            {% if collections %}
+                <form method="post" action="{{ url_for('add_paper_to_collection_from_results') }}">
+                    {# Если в выдаче есть отдельный stable paper id, лучше подставить его вместо hit.id #}
+                    <input type="hidden" name="paper_id" value="{{ hit.paper_id }}">
+                    <input type="hidden" name="next" value="{{ request.full_path }}">
+
+                    <label for="collection_id_{{ loop.index }}">Добавить в коллекцию:</label>
+                    <select name="collection_id" id="collection_id_{{ loop.index }}" required>
+                        {% for collection in collections %}
+                            <option value="{{ collection.id }}">{{ collection.title }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit">Добавить</button>
+                </form>
+            {% else %}
+                <p>
+                    <a href="{{ url_for('collections') }}">Сначала создайте коллекцию</a>
+                </p>
+            {% endif %}
+        </div>
+    {% endfor %}
+{% elif query %}
+    <p>По запросу ничего не найдено.</p>
+{% else %}
+    <p>Введите запрос на странице поиска.</p>
+{% endif %}

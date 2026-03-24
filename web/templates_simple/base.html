@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}SciTriveo{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <style>
+        :root {
+            --navy: #14213d;
+            --navy-2: #1b2d52;
+            --brown: #8a6a4a;
+            --sand: #f6f2ea;
+            --paper: #fcfbf8;
+            --line: #e7dfd3;
+            --muted: #6f7782;
+            --white: #ffffff;
+        }
+
+        body {
+            background: linear-gradient(to bottom, #f8f6f1 0%, #fcfbf8 220px);
+            color: var(--navy);
+            font-family: Arial, sans-serif;
+        }
+
+        .navbar-custom {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 6px 22px rgba(20, 33, 61, 0.18);
+        }
+
+        .navbar-brand {
+            color: var(--white) !important;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            font-size: 1.25rem;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            transition: color 0.2s ease, opacity 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: #f3e6d6 !important;
+        }
+
+        .github-logo {
+            width: 100px;
+            height: 50px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+            opacity: 0.92;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .github-logo:hover {
+            transform: scale(1.06);
+            opacity: 1;
+        }
+
+        .hero {
+            padding: 5.5rem 0 3.5rem;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 3.3rem;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            margin-bottom: 0.7rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.05rem;
+            color: var(--muted);
+            margin: 0 auto 2rem;
+            max-width: 680px;
+        }
+
+        .search-shell {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .search-box {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(20, 33, 61, 0.08);
+            border-radius: 20px;
+            padding: 0.55rem;
+            box-shadow: 0 14px 40px rgba(20, 33, 61, 0.08);
+            backdrop-filter: blur(6px);
+        }
+
+        .search-input {
+            border: none;
+            box-shadow: none !important;
+            background: transparent;
+            padding-left: 0.9rem;
+            font-size: 1rem;
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+            border: none;
+            color: white;
+            border-radius: 14px;
+            padding: 0.72rem 1.15rem;
+            font-weight: 600;
+            box-shadow: 0 8px 18px rgba(20, 33, 61, 0.16);
+        }
+
+        .btn-primary-custom:hover {
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .btn-light-custom {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--line);
+            color: var(--navy);
+            border-radius: 14px;
+            font-weight: 500;
+        }
+
+        .btn-light-custom:hover {
+            color: var(--brown);
+            border-color: #d8cbb8;
+            background: #fff;
+        }
+
+        .mini-actions {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.3rem;
+        }
+
+        .section-subtitle {
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .surface {
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(20, 33, 61, 0.08);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(20, 33, 61, 0.05);
+            backdrop-filter: blur(6px);
+        }
+
+        .compact-card {
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(20, 33, 61, 0.08);
+            border-radius: 18px;
+            padding: 1.15rem 1.15rem 1rem;
+            height: 100%;
+            box-shadow: 0 8px 24px rgba(20, 33, 61, 0.04);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+
+        .compact-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 32px rgba(20, 33, 61, 0.08);
+            border-color: rgba(20, 33, 61, 0.14);
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .count-badge {
+            display: inline-block;
+            font-size: 0.82rem;
+            color: var(--brown);
+            background: var(--sand);
+            border: 1px solid #e1d6c7;
+            border-radius: 999px;
+            padding: 0.35rem 0.68rem;
+        }
+
+        .result-item {
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(20, 33, 61, 0.08);
+            border-radius: 18px;
+            padding: 1.25rem;
+            box-shadow: 0 8px 24px rgba(20, 33, 61, 0.04);
+        }
+
+        .result-title {
+            font-size: 1.12rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+        }
+
+        .result-meta {
+            font-size: 0.92rem;
+            color: var(--muted);
+            margin-bottom: 0.7rem;
+        }
+
+        .footer-custom {
+            margin-top: 4rem;
+            padding: 1.5rem 0;
+            border-top: 1px solid rgba(20, 33, 61, 0.08);
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="/">SciTriveo</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/search">Search</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/collections">Collections</a>
+                </li>
+                <li class="nav-item ms-lg-3">
+                    <a
+                        class="nav-link p-0"
+                        href="https://github.com/jeraidho/scitriveo"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <img
+                            src="{{ url_for('static', filename='github-logo.png') }}"
+                            alt="GitHub"
+                            class="github-logo"
+                        >
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container">
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="footer-custom">
+    <div class="container d-flex justify-content-between flex-wrap gap-2">
+        <span>SciTriveo</span>
+        <span>Cross-lingual scientific search</span>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

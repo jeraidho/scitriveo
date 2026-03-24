@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}Results | SciTriveo{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="mb-4">
+        <h1 class="section-title mb-1">Results</h1>
+        <p class="section-subtitle mb-0">
+            {% if query %}
+                Showing results for <strong>{{ query }}</strong>
+            {% else %}
+                Search results will appear here.
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="search-shell mb-4 ms-0">
+        <form method="GET" action="{{ url_for('results') }}" class="search-box">
+            <input type="hidden" name="index_name" value="{{ index_name or 'bm25' }}">
+            <input type="hidden" name="top_k" value="{{ top_k or 10 }}">
+
+            {% if filters %}
+                {% if filters.publication_year_from is not none %}
+                    <input type="hidden" name="publication_year_from" value="{{ filters.publication_year_from }}">
+                {% endif %}
+                {% if filters.publication_year_to is not none %}
+                    <input type="hidden" name="publication_year_to" value="{{ filters.publication_year_to }}">
+                {% endif %}
+                {% if filters.journal_contains %}
+                    <input type="hidden" name="journal_contains" value="{{ filters.journal_contains }}">
+                {% endif %}
+                {% if filters.field_in %}
+                    <input type="hidden" name="field_in" value="{{ filters.field_in | join(', ') }}">
+                {% endif %}
+                {% if filters.cited_by_count_min is not none %}
+                    <input type="hidden" name="cited_by_count_min" value="{{ filters.cited_by_count_min }}">
+                {% endif %}
+                {% if filters.cited_by_count_max is not none %}
+                    <input type="hidden" name="cited_by_count_max" value="{{ filters.cited_by_count_max }}">
+                {% endif %}
+                {% if filters.is_retracted is not none %}
+                    <input type="hidden" name="is_retracted" value="{{ filters.is_retracted|string|lower }}">
+                {% endif %}
+            {% endif %}
+
+            <div class="d-flex gap-2">
+                <input
+                    type="text"
+                    class="form-control search-input"
+                    name="query"
+                    value="{{ query }}"
+                    placeholder="Search again..."
+                    required
+                >
+                <button type="submit" class="btn btn-primary-custom">Search</button>
+            </div>
+        </form>
+    </div>
+
+    {% if add_status == "added" %}
+        <div class="alert alert-success border-0 surface mb-4">
+            Paper was added to the collection.
+        </div>
+    {% elif add_status == "already_exists" %}
+        <div class="alert alert-warning border-0 surface mb-4">
+            This paper is already in the selected collection.
+        </div>
+    {% endif %}
+
+    {% if add_error %}
+        <div class="alert alert-danger border-0 surface mb-4">
+            Add-to-collection error: {{ add_error }}
+        </div>
+    {% endif %}
+
+    {% if error %}
+        <div class="alert alert-danger border-0 surface mb-4">
+            Error: {{ error }}
+        </div>
+    {% endif %}
+
+    {% if results_data %}
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+            <div class="muted">
+                Found {{ results_data.results_count }} results
+                {% if results_data.elapsed_ms is not none %}
+                    · {{ results_data.elapsed_ms }} ms
+                {% endif %}
+                {% if results_data.index_name %}
+                    · {{ results_data.index_name }}
+                {% endif %}
+            </div>
+
+            <a href="{{ url_for('search') }}" class="btn btn-light-custom">Advanced Search</a>
+        </div>
+
+        <div class="d-flex flex-column gap-3">
+            {% for hit in results_data.results %}
+                <div class="result-item">
+                    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                        <div>
+                            <div class="result-title">{{ hit.title or "Untitled paper" }}</div>
+                            <div class="result-meta">
+                                {{ hit.author or "Unknown author" }}
+                                {% if hit.publication_year %} · {{ hit.publication_year }}{% endif %}
+                                {% if hit.journal %} · {{ hit.journal }}{% endif %}
+                            </div>
+                        </div>
+
+                        {% if hit.cited_by_count is not none %}
+                            <span class="count-badge">{{ hit.cited_by_count }} citations</span>
+                        {% endif %}
+                    </div>
+
+                    {% if hit.field %}
+                        <p class="muted mb-2">Field: {{ hit.field }}</p>
+                    {% endif %}
+
+                    <p class="mb-3">{{ hit.text }}</p>
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div class="muted">
+                            Score: {{ hit.score }}
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap align-items-center">
+                            {% if hit.doi %}
+                                <a href="{{ hit.doi }}" target="_blank" class="btn btn-sm btn-light-custom">
+                                    Open
+                                </a>
+                            {% endif %}
+
+                            {% if collections %}
+                                <form
+                                    method="post"
+                                    action="{{ url_for('add_paper_to_collection_from_results') }}"
+                                    class="d-flex gap-2 flex-wrap align-items-center"
+                                >
+                                    <input type="hidden" name="paper_id" value="{{ hit.id }}">
+                                    <input type="hidden" name="next" value="{{ request.full_path }}">
+
+                                    <select name="collection_id" class="form-select form-select-sm" required>
+                                        {% for collection in collections %}
+                                            <option value="{{ collection.id }}">{{ collection.title }}</option>
+                                        {% endfor %}
+                                    </select>
+
+                                    <button type="submit" class="btn btn-sm btn-light-custom">
+                                        Add to Collection
+                                    </button>
+                                </form>
+                            {% else %}
+                                <a href="{{ url_for('collections') }}" class="btn btn-sm btn-light-custom">
+                                    Create Collection First
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% elif query %}
+        <div class="surface p-4">
+            <h5 class="mb-2">No results found</h5>
+            <p class="muted mb-0">Try a shorter or broader query.</p>
+        </div>
+    {% else %}
+        <div class="surface p-4">
+            <h5 class="mb-2">Start searching</h5>
+            <p class="muted mb-0">Enter a query to see results.</p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

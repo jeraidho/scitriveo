@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ collection.title if collection else "Collection" }}</title>
+</head>
+<body>
+    <p>
+        <a href="{{ url_for('collections') }}">← Back to collections</a>
+    </p>
+
+    {% if collection %}
+        <h1>{{ collection.title }}</h1>
+
+        <p><strong>ID:</strong> {{ collection.id }}</p>
+
+        <p>
+            <strong>Created:</strong> {{ collection.created_at }}<br>
+            <strong>Updated:</strong> {{ collection.updated_at }}
+        </p>
+
+        <h2>Description</h2>
+        <p>{{ collection.description or "No description." }}</p>
+
+        <h2>Keywords</h2>
+        {% if collection.keywords %}
+            <ul>
+                {% for keyword in collection.keywords %}
+                    <li>{{ keyword }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No keywords.</p>
+        {% endif %}
+
+        <h2>Added papers</h2>
+        {% if collection.added_papers %}
+            <ul>
+                {% for paper_id in collection.added_papers %}
+                    <li>
+                        {{ paper_id }}
+                        <form
+                            method="post"
+                            action="{{ url_for('remove_paper_from_collection', collection_id=collection.id) }}"
+                            style="display: inline;"
+                        >
+                            <input type="hidden" name="paper_id" value="{{ paper_id }}">
+                            <button type="submit">Remove</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No papers added yet.</p>
+        {% endif %}
+
+        <hr>
+
+        <form method="post" action="{{ url_for('delete_collection', collection_id=collection.id) }}">
+            <button type="submit">Delete collection</button>
+        </form>
+    {% else %}
+        <p>Collection not found.</p>
+    {% endif %}
+</body>
+</html>

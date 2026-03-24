@@ -5,6 +5,7 @@ from langdetect import detect
 import nltk
 from nltk.corpus import stopwords
 from pandarallel import pandarallel
+from .spellchecker import SpellChecker
 
 nltk.download('stopwords', quiet=True)
 
@@ -16,7 +17,7 @@ class TextPreprocessor:
         'approach', 'analysis', 'review', 'article'
     ]
 
-    def __init__(self):
+    def __init__(self, spellchecker=None):
         # get regex filters
         self.html_regex = re.compile(r'<[^>]*>')
         self.url_regex = re.compile(r'https?://\S+|www\.\S+')
@@ -29,6 +30,10 @@ class TextPreprocessor:
         self.stop_words = set(stopwords.words('english'))
         self.stop_words.update(self.additional_stop_words)
 
+        self.spellchecker = spellchecker
+
+        
+
     def _clean_noise(self, text: str) -> str:
         """
         Clean html-tags, url-links, multiple space-like chars
@@ -40,13 +45,16 @@ class TextPreprocessor:
         text = self.spacelike_regex.sub(' ', text)
         return text.strip().lower()
 
-    def process_string(self, text: str) -> str:
+    def process_string(self, text: str, apply_spellcheck: bool = True) -> str:
         if not isinstance(text, str) or not text:
             return ""
 
         cleaned = self._clean_noise(text)
         if not cleaned:
             return ""
+        
+        if apply_spellcheck and self.spellchecker is not None:
+            cleaned = self.spellchecker.correct_text(cleaned)
 
         # spaCy lemmatization
         doc = self.nlp(cleaned)
@@ -92,8 +100,8 @@ class TextPreprocessor:
         input_df['abstract_lang'] = input_df['abstract'].apply(self.detect_language)
 
         # add column for cleaned and lemmatised title and abstract
-        input_df['title_lemmatised'] = input_df['title'].parallel_apply(self.process_string)
-        input_df['abstract_lemmatised'] = input_df['abstract'].parallel_apply(self.process_string)
+        input_df['title_lemmatised'] = input_df['title'].parallel_apply(self.process_string, apply_spellcheck=False)
+        input_df['abstract_lemmatised'] = input_df['abstract'].parallel_apply(self.process_string, apply_spellcheck=False)
 
         # create index text based on language
         input_df['index_text_lemmatised'] = input_df.apply(

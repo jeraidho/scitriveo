@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Home | SciTriveo{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1 class="hero-title">SciTriveo</h1>
+    <p class="hero-subtitle">
+        Search and collect scientific papers across languages.
+    </p>
+
+    <div class="search-shell">
+        <form method="GET" action="/results" class="search-box">
+            <div class="d-flex gap-2">
+                <input
+                    type="text"
+                    class="form-control search-input"
+                    name="query"
+                    placeholder="Search papers, topics, methods..."
+                    required
+                >
+                <button type="submit" class="btn btn-primary-custom">
+                    Search
+                </button>
+            </div>
+        </form>
+
+        <div class="mini-actions">
+            <a href="/collections" class="btn btn-light-custom">Collections</a>
+            <a href="/search" class="btn btn-light-custom">Advanced Search</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

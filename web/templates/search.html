@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Search | SciTriveo{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="mb-4">
+        <h1 class="section-title mb-1">Search</h1>
+        <p class="section-subtitle mb-0">Find papers in the multilingual corpus.</p>
+    </div>
+
+    <div class="surface p-3 p-md-4">
+        <form method="GET" action="{{ url_for('results') }}">
+            <div class="row g-3">
+                <div class="col-lg-8">
+                    <label for="query" class="form-label">Query</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="query"
+                        name="query"
+                        placeholder="e.g. morphology research of caucasian languages"
+                        required
+                    >
+                </div>
+
+                <div class="col-lg-2">
+                    <label for="index_name" class="form-label">Model</label>
+                    <select class="form-select" id="index_name" name="index_name">
+                        {% for idx in available_indexes %}
+                            <option value="{{ idx }}">{{ idx|upper }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-lg-2">
+                    <label for="top_k" class="form-label">Top K</label>
+                    <input
+                        type="number"
+                        class="form-control"
+                        id="top_k"
+                        name="top_k"
+                        value="10"
+                        min="1"
+                        max="100"
+                    >
+                </div>
+
+                <div class="col-md-6">
+                    <label for="publication_year_from" class="form-label">Publication year from</label>
+                    <input type="number" class="form-control" id="publication_year_from" name="publication_year_from">
+                </div>
+
+                <div class="col-md-6">
+                    <label for="publication_year_to" class="form-label">Publication year to</label>
+                    <input type="number" class="form-control" id="publication_year_to" name="publication_year_to">
+                </div>
+
+                <div class="col-md-6">
+                    <label for="journal_contains" class="form-label">Journal contains</label>
+                    <input type="text" class="form-control" id="journal_contains" name="journal_contains">
+                </div>
+
+                <div class="col-md-6">
+                    <label for="field_in" class="form-label">Fields</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="field_in"
+                        name="field_in"
+                        placeholder="linguistics, morphology"
+                    >
+                </div>
+
+                <div class="col-md-6">
+                    <label for="cited_by_count_min" class="form-label">Minimum citations</label>
+                    <input type="number" class="form-control" id="cited_by_count_min" name="cited_by_count_min">
+                </div>
+
+                <div class="col-md-6">
+                    <label for="cited_by_count_max" class="form-label">Maximum citations</label>
+                    <input type="number" class="form-control" id="cited_by_count_max" name="cited_by_count_max">
+                </div>
+
+                <div class="col-md-6">
+                    <label for="is_retracted" class="form-label">Retraction status</label>
+                    <select class="form-select" id="is_retracted" name="is_retracted">
+                        <option value="">Any</option>
+                        <option value="false">Not retracted</option>
+                        <option value="true">Retracted</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary-custom">Search</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
