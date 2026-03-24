@@ -1,0 +1,6 @@
+{
+  "index_type": "fasttext",
+  "vector_dim": 300,
+  "tfidf_max_features": 50000,
+  "min_score": 0.0
+}

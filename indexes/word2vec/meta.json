@@ -1,0 +1,6 @@
+{
+  "index_type": "word2vec",
+  "vector_dim": 300,
+  "tfidf_max_features": 50000,
+  "min_score": 0.0
+}
