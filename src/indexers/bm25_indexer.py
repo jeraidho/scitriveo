@@ -58,7 +58,7 @@ class BM25Indexer(BaseIndexer):
             json.dump(meta, f, ensure_ascii=False, indent=2)
 
     @classmethod
-    def load(cls, in_dir: Path, **kwargs) -> "LibraryBM25Indexer":
+    def load(cls, in_dir: Path, **kwargs) -> "BM25Indexer":
         """
         Load bm25 index artifacts
         :param in_dir: target directory with index artifacts
