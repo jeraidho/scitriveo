@@ -27,7 +27,7 @@ The project follows a composition root pattern. The `AppContainer` serves as the
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 .
