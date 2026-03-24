@@ -8,17 +8,19 @@ from src.data.preprocessing import TextPreprocessor
 from src.indexers.word2vec_indexer import W2VWrapper
 from src.search.factory import SearchEngineFactory
 from src.services import IndexBuildService, RecommendationService, SearchService
+from src.services.rag_service import RAGService
+import torch
 
 
 class AppContainer:
     """Application composition root for services and managers"""
 
     def __init__(
-        self,
-        config: AppConfig,
-        preprocessor: Optional[Any] = None,
-        models: Optional[dict[str, Any]] = None,
-        docs_df: Optional[pd.DataFrame] = None,
+            self,
+            config: AppConfig,
+            preprocessor: Optional[Any] = None,
+            models: Optional[dict[str, Any]] = None,
+            docs_df: Optional[pd.DataFrame] = None,
     ) -> None:
         """
         :param config: app config with paths and startup settings
@@ -89,14 +91,28 @@ class AppContainer:
             rrf_k=self.config.recommendation_rrf_k,
         )
 
+        # service for rag
+        # define device based on available backend
+        if torch.cuda.is_available():
+            device = "cuda"
+        elif torch.mps.is_available():
+            device = "mps"
+        else:
+            device = "cpu"
+
+        # initialise rag service
+        self.rag_service = RAGService(
+            model_path=(self.paths.models_dir / "clara" / "compression-128"),
+            device=device)
+
     @classmethod
     def from_root(
-        cls,
-        root_path: Path,
-        preprocessor: Optional[Any] = None,
-        models: Optional[dict[str, Any]] = None,
-        docs_df: Optional[pd.DataFrame] = None,
-        **config_kwargs: Any,
+            cls,
+            root_path: Path,
+            preprocessor: Optional[Any] = None,
+            models: Optional[dict[str, Any]] = None,
+            docs_df: Optional[pd.DataFrame] = None,
+            **config_kwargs: Any,
     ) -> "AppContainer":
         """
         Build container from root directory and optional config overrides
@@ -112,11 +128,11 @@ class AppContainer:
         return cls(config=config, preprocessor=preprocessor, models=models, docs_df=docs_df)
 
     def search(
-        self,
-        query: str,
-        index_name: str,
-        top_k: int = 10,
-        filters: Optional[dict[str, Any]] = None,
+            self,
+            query: str,
+            index_name: str,
+            top_k: int = 10,
+            filters: Optional[dict[str, Any]] = None,
     ) -> dict[str, Any]:
         """
         Facade method for search operations
@@ -134,10 +150,10 @@ class AppContainer:
         )
 
     def create_collection(
-        self,
-        title: str,
-        description: str = "",
-        keywords: Optional[list[str]] = None,
+            self,
+            title: str,
+            description: str = "",
+            keywords: Optional[list[str]] = None,
     ) -> dict[str, Any]:
         """
         Facade method to create collection
@@ -164,10 +180,10 @@ class AppContainer:
         return self.collection_manager.add_paper(collection_id=collection_id, paper_id=paper_id, autosave=True)
 
     def recommend(
-        self,
-        collection_id: str,
-        top_k: int = 10,
-        filters: Optional[dict[str, Any]] = None,
+            self,
+            collection_id: str,
+            top_k: int = 10,
+            filters: Optional[dict[str, Any]] = None,
     ) -> dict[str, Any]:
         """
         Facade method for recommendation service call
@@ -195,7 +211,6 @@ class AppContainer:
     def _load_docs_df(self) -> pd.DataFrame:
         """
         Load dataframe with corpus metadata and text.
-
         :returns: dataframe
         """
         path = self.paths.corpus_preprocessed_csv_path
@@ -219,7 +234,6 @@ class AppContainer:
     def _load_models(self) -> dict[str, Any]:
         """
         Load word2vec and fasttext models if files are present.
-
         Model loading is best-effort:
         - word2vec from .vec via KeyedVectors + W2VWrapper
         - fasttext from facebook .bin via gensim loader
@@ -253,3 +267,26 @@ class AppContainer:
 
         return models
 
+    def ask_collection(self, collection_id: str, question: str) -> str:
+        """
+        Facade method to answer questions based on collection content
+        :param collection_id: target collection uuid
+        :param question: user inquiry
+        :returns: generated answer from the rag model
+        """
+        collection = self.collection_manager.get_collection(collection_id)
+        if not collection.added_papers:
+            return "Collection is empty"
+
+        # fetch titles and abstracts for all papers in the collection
+        mask = self.docs_df['id'].isin(collection.added_papers)
+        subset = self.docs_df[mask]
+
+        # concatenate title and abstract for each document into context strings
+        context_list = []
+        for _, row in subset.iterrows():
+            doc_representation = f"title: {row.get('title', '')} | abstract: {row.get('abstract', '')}"
+            context_list.append(doc_representation)
+
+        # delegate generation to the rag service
+        return self.rag_service.generate_answer(question, context_list)

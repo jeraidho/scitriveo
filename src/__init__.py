@@ -12,7 +12,8 @@ from .search.factory import SearchEngineFactory
 from .services.index_build_service import IndexBuildService, IndexBuildReport
 from .services.recommendation_service import RecommendationService
 from .services.search_service import SearchService
-from cli.cli_app import CLIApplication
+from .cli.cli_app import CLIApplication
+from .services.rag_service import RAGService
 
 
 __all__ = [
@@ -33,5 +34,6 @@ __all__ = [
     "IndexBuildService",
     "IndexBuildReport",
     "RecommendationService",
-    "SearchService"
+    "SearchService",
+    "RAGService"
 ]

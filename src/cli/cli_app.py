@@ -66,6 +66,13 @@ class CLIApplication:
 
         # interactive mode command
         subparsers.add_parser("interactive", help="enter persistent session to avoid reloads")
+
+        # rag command
+        # configuration for the rag assistant
+        ask_ptr = subparsers.add_parser("ask", help="ask a question about a collection")
+        ask_ptr.add_argument("--id", required=True, help="collection identifier")
+        ask_ptr.add_argument("question", type=str, help="question text")
+
     @staticmethod
     def _print_formatted_hits(hits):
         """
@@ -174,10 +181,12 @@ class CLIApplication:
             self._handle_recommend(args)
         elif args.command == "interactive":
             print("already in interactive mode")
+        elif args.command == "ask":
+            self._handle_ask(args)
         else:
             self.parser.print_help()
 
-    def _handle_search(self, args):
+    def _handle_search(self, args: argparse.Namespace):
         """
         Internal function to execute search logic and display results
         :param args: parsed command line arguments
@@ -239,3 +248,15 @@ class CLIApplication:
             pprint(rec, indent=2, width=100)
 
         print(f"\nMode: {response['mode']} | latency: {response['elapsed_ms']} ms")
+
+    def _handle_ask(self, args: argparse.Namespace):
+        """
+        Internal function to execute generative answering logic
+        :param args: parsed command line arguments
+        """
+        print(f"Consulting research assistant for collection: {args.id}")
+        # this will trigger model loading on the first call
+        answer = self.container.ask_collection(args.id, args.question)
+        print("\n--- Assistant Response ---")
+        print(answer)
+        print("---------------------------")
