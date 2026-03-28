@@ -14,6 +14,7 @@ from .services.recommendation_service import RecommendationService
 from .services.search_service import SearchService
 from .cli.cli_app import CLIApplication
 from .services.rag_service import RAGService
+from .services.rag_service_ollama import RAGServiceOllama
 
 
 __all__ = [
@@ -35,5 +36,6 @@ __all__ = [
     "IndexBuildReport",
     "RecommendationService",
     "SearchService",
-    "RAGService"
+    "RAGService",
+    "RAGServiceOllama"
 ]

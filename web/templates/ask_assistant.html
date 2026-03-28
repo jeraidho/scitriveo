@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Assistant | {{ collection.title }}{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="section-title mb-1">Research Assistant</h1>
+            <p class="section-subtitle mb-0">Ask questions based on <strong>{{ collection.title }}</strong></p>
+        </div>
+        <a href="{{ url_for('collection_detail', collection_id=collection.id) }}" class="btn btn-light-custom">Back</a>
+    </div>
+
+    <!-- question input surface -->
+    <div class="surface p-4 mb-4">
+        <form id="assistant-form">
+            <div class="mb-3">
+                <label for="question" class="form-label">Your Question</label>
+                <textarea
+                    name="question"
+                    id="question"
+                    class="form-control"
+                    rows="3"
+                    placeholder="e.g. summarize the main results of these studies"
+                    required
+                ></textarea>
+            </div>
+            <button type="submit" id="submit-btn" class="btn btn-primary-custom">Ask Assistant</button>
+        </form>
+    </div>
+
+    <!-- response display surface (initially hidden) -->
+    <div id="response-container" class="surface p-4 d-none">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h5 class="mb-0">Assistant Response</h5>
+            <span id="loading-badge" class="count-badge d-none">Thinking...</span>
+        </div>
+
+        <div id="thinking-state" class="p-4 text-center d-none">
+            <div class="spinner-border text-primary mb-2" role="status"></div>
+            <p class="muted mb-0">Assistant is analysing your collection...</p>
+        </div>
+
+        <div id="answer-box" class="p-3 bg-light rounded border d-none">
+            <p id="answer-text" style="white-space: pre-wrap; line-height: 1.6; margin-bottom: 0;"></p>
+        </div>
+
+        <p class="muted mt-3 mb-0" style="font-size: 0.85rem;">
+            synthesis based on {{ collection.added_papers | length }} documents from your library.
+        </p>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('assistant-form');
+    const responseContainer = document.getElementById('response-container');
+    const thinkingState = document.getElementById('thinking-state');
+    const answerBox = document.getElementById('answer-box');
+    const answerText = document.getElementById('answer-text');
+    const submitBtn = document.getElementById('submit-btn');
+    const loadingBadge = document.getElementById('loading-badge');
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // ui state: prepare for loading
+        submitBtn.disabled = true;
+        responseContainer.classList.remove('d-none');
+        thinkingState.classList.remove('d-none');
+        loadingBadge.classList.remove('d-none');
+        answerBox.classList.add('d-none');
+        answerText.innerText = "";
+
+        const formData = new FormData(this);
+
+        // perform asynchronous request to server
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // hide loading states and show response
+            thinkingState.classList.add('d-none');
+            loadingBadge.classList.add('d-none');
+
+            if (data.answer) {
+                answerBox.classList.remove('d-none');
+                answerText.innerText = data.answer;
+            } else if (data.error) {
+                answerBox.classList.remove('d-none');
+                answerText.innerText = "error: " + data.error;
+            }
+        })
+        .catch(error => {
+            thinkingState.classList.add('d-none');
+            answerBox.classList.remove('d-none');
+            answerText.innerText = "connection error occurred during processing";
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,29 +1,25 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ collection.title if collection else 'Collection' }} | SciTriveo{% endblock %}
+{% block title %}{{ collection.title }} | Details{% endblock %}
 
 {% block content %}
 <section class="py-5">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
         <div>
             <h1 class="section-title mb-1">{{ collection.title }}</h1>
-            <p class="section-subtitle mb-0">
-                Collection ID: {{ collection.id }}
-            </p>
+            <p class="section-subtitle mb-0">Collection ID: {{ collection.id }}</p>
         </div>
-
-        <a href="{{ url_for('collections') }}" class="btn btn-light-custom">Back to Collections</a>
+        <div class="d-flex gap-2">
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('collection_ask', collection_id=collection.id) }}" class="btn btn-primary-custom">Ask Assistant</a>
+                <a href="{{ url_for('collection_recommend', collection_id=collection.id) }}" class="btn btn-light-custom">Recommendations</a>
+                <a href="{{ url_for('collections') }}" class="btn btn-light-custom">Back</a>
+        </div>
     </div>
-
-    {% if error %}
-        <div class="alert alert-danger border-0 surface mb-4">
-            {{ error }}
-        </div>
-    {% endif %}
 
     <div class="surface p-4 mb-4">
         <h5 class="mb-3">Description</h5>
-        <p class="mb-0">{{ collection.description or "No description." }}</p>
+        <p class="mb-0">{{ collection.description or "no description provided." }}</p>
     </div>
 
     <div class="surface p-4 mb-4">
@@ -35,47 +31,39 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p class="muted mb-0">No keywords.</p>
+            <p class="muted mb-0">no keywords defined.</p>
         {% endif %}
     </div>
 
     <div class="surface p-4 mb-4">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
-            <h5 class="mb-0">Added papers</h5>
-            <span class="count-badge">{{ collection.added_papers | length }} papers</span>
-        </div>
-
-        {% if collection.added_papers %}
+        <h5 class="mb-3">Saved Papers</h5>
+        {% if papers %}
             <div class="d-flex flex-column gap-3">
-                {% for paper_id in collection.added_papers %}
-                    <div class="result-item py-3">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                {% for paper in papers %}
+                    <div class="result-item">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
                             <div>
-                                <div class="result-title mb-1">{{ paper_id }}</div>
-                                <div class="result-meta">Saved paper ID</div>
+                                <div class="result-title">{{ paper.title or "untitled" }}</div>
+                                <div class="result-meta">
+                                    {{ paper.author or "unknown author" }}
+                                    {% if paper.publication_year %} · {{ paper.publication_year }}{% endif %}
+                                    {% if paper.journal %} · {{ paper.journal }}{% endif %}
+                                </div>
                             </div>
-
-                            <form
-                                method="post"
-                                action="{{ url_for('remove_paper_from_collection', collection_id=collection.id) }}"
-                            >
-                                <input type="hidden" name="paper_id" value="{{ paper_id }}">
-                                <button type="submit" class="btn btn-sm btn-light-custom">Remove</button>
+                            <form method="post" action="{{ url_for('remove_paper_from_collection', collection_id=collection.id) }}">
+                                <input type="hidden" name="paper_id" value="{{ paper.id }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
                             </form>
                         </div>
+                        <p class="mt-2 mb-0 text-truncate-3 muted" style="font-size: 0.9rem;">
+                            {{ paper.abstract or "no abstract available." }}
+                        </p>
                     </div>
                 {% endfor %}
             </div>
         {% else %}
-            <p class="muted mb-0">No papers added yet.</p>
+            <p class="muted mb-0">no papers added to this collection yet.</p>
         {% endif %}
-    </div>
-
-    <div class="surface p-4">
-        <h5 class="mb-3">Danger zone</h5>
-        <form method="post" action="{{ url_for('delete_collection', collection_id=collection.id) }}">
-            <button type="submit" class="btn btn-outline-danger">Delete Collection</button>
-        </form>
     </div>
 </section>
 {% endblock %}

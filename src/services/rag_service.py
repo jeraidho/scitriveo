@@ -26,12 +26,20 @@ class RAGService:
         :returns: initialised model instance
         """
         if self._model is None:
-            # load the model using auto model with remote code enabled
-            self._model = AutoModel.from_pretrained(
-                self.model_path,
-                trust_remote_code=True,
-                torch_dtype=torch.float16
-            ).to(self.device)
+            dtype = torch.float16 if self.device == "mps" else torch.float32
+
+            try:
+                # explicit device loading without auto mapping for stability
+                self._model = AutoModel.from_pretrained(
+                    str(self.model_path),
+                    trust_remote_code=True,
+                    torch_dtype=dtype,
+                    low_cpu_mem_usage = True
+                ).to(self.device)
+            except Exception as error:
+                print(f"model loading failed during initialization: {error}")
+                raise error
+
         return self._model
 
     def generate_answer(self, question: str, context_documents: list[str], max_tokens: int = 256) -> str:

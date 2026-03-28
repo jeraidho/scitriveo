@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Recommendations for {{ collection.title }}{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="mb-4">
+        <h1 class="section-title mb-1">AI Recommendations</h1>
+        <p class="section-subtitle mb-0">
+            Suggested papers for <strong>{{ collection.title }}</strong> based on its content and profile.
+        </p>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="muted">
+            Found {{ recommendations.results_count }} suggestions in {{ recommendations.elapsed_ms }} ms
+        </div>
+        <a href="{{ url_for('collection_detail', collection_id=collection.id) }}" class="btn btn-light-custom">Back to Collection</a>
+    </div>
+
+    <div class="d-flex flex-column gap-3">
+        {% for rec in recommendations.results %}
+            <div class="result-item">
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                    <div>
+                        <div class="result-title">{{ rec.title or "untitled paper" }}</div>
+                        <div class="result-meta">
+                            {{ rec.author or "unknown author" }}
+                            {% if rec.publication_year %} · {{ rec.publication_year }}{% endif %}
+                            {% if rec.journal %} · {{ rec.journal }}{% endif %}
+                        </div>
+                    </div>
+                    <span class="count-badge">Affinity: {{ rec.recommendation_score | round(4) }}</span>
+                </div>
+
+                <p class="mb-3 mt-2">{{ rec.text[:300] }}...</p>
+
+                <div class="d-flex justify-content-end align-items-center gap-2">
+                    {% if rec.doi %}
+                        <a href="{{ rec.doi }}" target="_blank" class="btn btn-sm btn-light-custom">View DOI</a>
+                    {% endif %}
+
+                    <form method="post" action="{{ url_for('add_paper_to_collection_from_results') }}">
+                        <input type="hidden" name="paper_id" value="{{ rec.paper_id }}">
+                        <input type="hidden" name="collection_id" value="{{ collection.id }}">
+                        <input type="hidden" name="next" value="{{ request.full_path }}">
+                        <button type="submit" class="btn btn-sm btn-primary-custom">Add to Collection</button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

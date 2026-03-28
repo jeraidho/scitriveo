@@ -8,7 +8,7 @@ from src.data.preprocessing import TextPreprocessor
 from src.indexers.word2vec_indexer import W2VWrapper
 from src.search.factory import SearchEngineFactory
 from src.services import IndexBuildService, RecommendationService, SearchService
-from src.services.rag_service import RAGService
+from src.services.rag_service_ollama import RAGServiceOllama
 import torch
 
 
@@ -101,9 +101,11 @@ class AppContainer:
             device = "cpu"
 
         # initialise rag service
-        self.rag_service = RAGService(
-            model_path=(self.paths.models_dir / "clara" / "compression-128"),
-            device=device)
+        # self.rag_service = RAGService(
+        #     model_path=(self.paths.models_dir / "clara" / "compression-16"),
+        #     device=device)
+        self.rag_service = RAGServiceOllama(model_name="mistral")
+
 
     @classmethod
     def from_root(
@@ -267,26 +269,59 @@ class AppContainer:
 
         return models
 
+    # def ask_collection(self, collection_id: str, question: str) -> str:
+    #     """
+    #     Facade method to answer questions based on collection content
+    #     :param collection_id: target collection uuid
+    #     :param question: user inquiry
+    #     :returns: generated answer from the rag model
+    #     """
+    #     collection = self.collection_manager.get_collection(collection_id)
+    #     if not collection.added_papers:
+    #         return "Collection is empty"
+    #
+    #     # fetch titles and abstracts for all papers in the collection
+    #     mask = self.docs_df['id'].isin(collection.added_papers)
+    #     subset = self.docs_df[mask]
+    #
+    #     # concatenate title and abstract for each document into context strings
+    #     context_list = []
+    #     for _, row in subset.iterrows():
+    #         doc_representation = f"title: {row.get('title', '')} | abstract: {row.get('abstract', '')}"
+    #         context_list.append(doc_representation)
+    #
+    #     # delegate generation to the rag service
+    #     return self.rag_service.generate_answer(question, context_list)
+
     def ask_collection(self, collection_id: str, question: str) -> str:
         """
-        Facade method to answer questions based on collection content
-        :param collection_id: target collection uuid
-        :param question: user inquiry
-        :returns: generated answer from the rag model
+        Facade method to answer questions based on enriched collection metadata
+        :param collection_id: target collection unique identifier
+        :param question: the user research question
+        :returns: generated answer from the model
         """
         collection = self.collection_manager.get_collection(collection_id)
         if not collection.added_papers:
-            return "Collection is empty"
+            return "the selected collection contains no papers"
 
-        # fetch titles and abstracts for all papers in the collection
+        # fetch metadata from the corpus dataframe for all papers in the workspace
         mask = self.docs_df['id'].isin(collection.added_papers)
         subset = self.docs_df[mask]
 
-        # concatenate title and abstract for each document into context strings
+        # build a rich context string for each paper including metadata
         context_list = []
         for _, row in subset.iterrows():
-            doc_representation = f"title: {row.get('title', '')} | abstract: {row.get('abstract', '')}"
-            context_list.append(doc_representation)
+            # format each document as a structured snippet of knowledge
+            item = (
+                f"title: {row.get('title', 'n/a')}\n"
+                f"authors: {row.get('author', 'unknown')}\n"
+                f"year: {row.get('publication_year', 'unknown')}\n"
+                f"journal: {row.get('journal', 'n/a')}\n"
+                f"citations: {row.get('cited_by_count', 'zero')}\n"
+                f"abstract: {row.get('abstract', 'no content available')}\n"
+                f"---"
+            )
+            context_list.append(item)
 
-        # delegate generation to the rag service
+        # delegate the synthesis task to the generative service
         return self.rag_service.generate_answer(question, context_list)
